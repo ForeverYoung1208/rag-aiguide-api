@@ -1,0 +1,4 @@
+# containers data
+/postgres/data
+/postgres/data_tests
+/redis/data
