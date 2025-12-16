@@ -27,9 +27,6 @@ services:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_DATABASE}
-      POSTGRES_MULTIPLE_DATABASES: ${DB_GOODS_DATABASE}
-      RO_USER: ${DB_GOODS_READER}
-      RO_PASSWORD: ${DB_GOODS_READER_PASSWORD}
     ports:
       - ${DB_PORT}:5432
     volumes:
@@ -43,7 +40,6 @@ services:
       POSTGRES_USER: username_test
       POSTGRES_PASSWORD: secret_test
       POSTGRES_DB: aiguide_test
-      POSTGRES_MULTIPLE_DATABASES: ${DB_GOODS_DATABASE}_test
     ports:
       - 54321:5432
     volumes:

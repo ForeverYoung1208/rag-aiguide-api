@@ -1,0 +1,27 @@
+### Test local Ollama API
+GET http://localhost:11434/api/version
+Accept: application/json
+
+### Test local Ollama models
+GET http://localhost:11434/api/tags
+Accept: application/json
+
+### Test local Ollama generate
+POST http://localhost:11434/api/generate
+Content-Type: application/json
+
+{
+  "model": "llama3.1:latest",
+  "prompt": "Hello, it is a test",
+  "stream": false
+}
+
+### Test local Ollama generate with streaming
+POST http://localhost:11434/api/generate
+Content-Type: application/json
+
+{
+  "model": "llama3.1:latest",
+  "prompt": "Write a short poem about programming",
+  "stream": true
+}

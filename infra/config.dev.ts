@@ -1,7 +1,7 @@
 import { IAppStackConfig } from './bin/infra';
 
 // define project name (any) - will be used as part of naming for some resources like docker image, database, etc.
-const projectShortName = 'aiguide';
+const projectShortName = 'rag-aiguide';
 
 // define postfix for environment resources to specify
 const suffix = '-dev';
@@ -20,8 +20,6 @@ const userDeploerName = `${projectName}-deployer`;
 // database name
 const databaseName = projectShortName + suffix.replace('-', ''); // DatabaseName must begin with a letter and contain only alphanumeric characters
 const databaseUsername = 'postgres';
-const databaseGoodsName = `goods`;
-const databaseGoodsReader = 'aiguide_reader';
 const targetNodeEnv = 'development';
 
 const siteOrigin =
@@ -39,6 +37,4 @@ export const config: IAppStackConfig = {
   databaseUsername,
   targetNodeEnv,
   siteOrigin,
-  databaseGoodsName,
-  databaseGoodsReader,
 };

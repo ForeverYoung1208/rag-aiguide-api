@@ -72,10 +72,6 @@ export class InfraStack extends cdk.Stack {
       .fill(null)
       .map(() => Math.floor(Math.random() * 36).toString(36))
       .join('');
-    const dbGoodsReaderPasswordParameterValue = Array(10)
-      .fill(null)
-      .map(() => Math.floor(Math.random() * 36).toString(36))
-      .join('');
     const jwtSecretKeyParameterValue = Array(10)
       .fill(null)
       .map(() => Math.floor(Math.random() * 36).toString(36))
@@ -91,15 +87,6 @@ export class InfraStack extends cdk.Stack {
         parameterName: `/${projectName}/db-password`,
         stringValue: dbPasswordParameterValue,
         description: 'DB password',
-      },
-    );
-    const dbGoodsReaderPasswordParameter = new ssm.StringParameter(
-      this,
-      `${projectName}DbGoodsReaderPasswordParameter`,
-      {
-        parameterName: `/${projectName}/db-goods-reader-password`,
-        stringValue: dbGoodsReaderPasswordParameterValue,
-        description: 'DB goods reader password',
       },
     );
     const jwtSecretKeyParameter = new ssm.StringParameter(
@@ -118,24 +105,6 @@ export class InfraStack extends cdk.Stack {
         parameterName: `/${projectName}/jwt-refresh-secret-key`,
         stringValue: jwtRefreshSecretKeyParameterValue,
         description: 'JWT refresh secret key',
-      },
-    );
-    const openaiApiKeyParameter = new ssm.StringParameter(
-      this,
-      `${projectName}OpenaiApiKeyParameter`,
-      {
-        parameterName: `/${projectName}/openai-api-key`,
-        stringValue: 'set your openai api key here',
-        description: 'OpenAI API key',
-      },
-    );
-    const openaiProjectIdParameter = new ssm.StringParameter(
-      this,
-      `${projectName}OpenaiProjectIdParameter`,
-      {
-        parameterName: `/${projectName}/openai-project-id`,
-        stringValue: 'set your openai project id here',
-        description: 'OpenAI project id',
       },
     );
     /**
@@ -258,9 +227,6 @@ export class InfraStack extends cdk.Stack {
           dbPasswordParameter.parameterArn,
           jwtSecretKeyParameter.parameterArn,
           jwtRefreshSecretKeyParameter.parameterArn,
-          openaiApiKeyParameter.parameterArn,
-          openaiProjectIdParameter.parameterArn,
-          dbGoodsReaderPasswordParameter.parameterArn,
         ],
       }),
     );
@@ -286,18 +252,13 @@ DB_HOST=db
 DB_PORT=5432
 DB_DATABASE=${config.databaseName}
 DB_USERNAME=${config.databaseUsername}
-DB_GOODS_DATABASE=${config.databaseGoodsName}
-DB_GOODS_READER=${config.databaseGoodsReader}
 REDIS_PORT=6379
 ACCESS_TOKEN_TTL=900
 REFRESH_TOKEN_TTL=604800
 BCRYPT_SALT_ROUNDS=8
 DB_PASSWORD=\$(aws ssm get-parameter --name "/${projectName}/db-password" --with-decryption --query "Parameter.Value" --output text --region ${this.region})
-DB_GOODS_READER_PASSWORD=\$(aws ssm get-parameter --name "/${projectName}/db-goods-reader-password" --with-decryption --query "Parameter.Value" --output text --region ${this.region})
 JWT_SECRET_KEY=\$(aws ssm get-parameter --name "/${projectName}/jwt-secret-key" --with-decryption --query "Parameter.Value" --output text --region ${this.region})
 JWT_REFRESH_SECRET_KEY=\$(aws ssm get-parameter --name "/${projectName}/jwt-refresh-secret-key" --with-decryption --query "Parameter.Value" --output text --region ${this.region})
-OPENAI_API_KEY=\$(aws ssm get-parameter --name "/${projectName}/openai-api-key" --with-decryption --query "Parameter.Value" --output text --region ${this.region})
-OPENAI_PROJECT_ID=\$(aws ssm get-parameter --name "/${projectName}/openai-project-id" --with-decryption --query "Parameter.Value" --output text --region ${this.region})
 EOF
 
 `;

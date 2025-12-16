@@ -2,7 +2,7 @@
 
 This document serves as a knowledge base for LLMs to quickly understand the project structure, patterns, and conventions of the `aiguide-api`.
 
-## Project is api for e-commerce platform with AI agent
+## Project is API for e-commerce platform with RAG AI shopping assistant
 
 ## 1. Technology Stack
 - **Framework**: NestJS

@@ -12,8 +12,6 @@ export interface IAppStackConfig {
   fullSubDomainNameApp: string;
   userDeploerName: string;
   databaseUsername: string;
-  databaseGoodsName: string;
-  databaseGoodsReader: string;
   targetNodeEnv: string;
   siteOrigin: string;
 }
