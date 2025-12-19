@@ -1,12 +1,16 @@
 export const seed = String.raw`
 
--- public.item definition
+-- public.product definition
 
 -- Drop tables
 
-DROP TABLE IF EXISTS public.items_groups;
-DROP TABLE IF EXISTS public.item;
-DROP TABLE IF EXISTS public."group";
+alter table public.carts_products drop constraint if exists products_groups_group_fk;
+alter table public.carts_products drop constraint if exists products_groups_product_fk;
+
+
+DROP TABLE IF EXISTS public.products_groups;
+DROP TABLE IF EXISTS public.product cascade;
+DROP TABLE IF EXISTS public."group" cascade;
 
 
 --
@@ -26,19 +30,19 @@ CREATE SEQUENCE IF NOT EXISTS public.newtable_id_seq
 
 -- 
 
-CREATE TABLE public.item (
+CREATE TABLE public.product (
 	id int8 DEFAULT nextval('newtable_id_seq'::regclass) NOT NULL,
 	"name" varchar NOT NULL,
 	code varchar NOT NULL,
 	price int8 NOT NULL,
 	description text NULL,
 	brand varchar NULL,
-	CONSTRAINT item_pk PRIMARY KEY (id),
-	CONSTRAINT item_unique UNIQUE (code)
+	CONSTRAINT product_pk PRIMARY KEY (id),
+	CONSTRAINT product_unique UNIQUE (code)
 );
 
 
-INSERT INTO public.item (id,name,code,price,description,brand) VALUES
+INSERT INTO public.product (id,name,code,price,description,brand) VALUES
 	 (1,'GloboPhone X1','GPX1-256GB',69900,'5G smartphone, 8 GB RAM, 256 GB storage, 6.5″ OLED screen, 4500 mAh battery.','GloboTech'),
 	 (2,'GloboPhone X1 Pro','GPX1P-512GB',89900,'5G smartphone, 12 GB RAM, 512 GB storage, 6.7″ curved display, 4800 mAh battery.','GloboTech'),
 	 (3,'GloboPhone Lite','GPL-128GB',39900,'Budget 5G phone, 6 GB RAM, 128 GB storage, 6.1″ LCD screen, 4000 mAh battery.','GloboTech'),
@@ -49,7 +53,7 @@ INSERT INTO public.item (id,name,code,price,description,brand) VALUES
 	 (8,'SpectraPhone S20 Pro','SPS20P-256GB',99900,'5G flagship, 12 GB RAM, 256 GB, 6.8″ display, 5200 mAh battery.','Spectra'),
 	 (9,'EcoPhone E1','EPE1-64GB',29900,'Eco-friendly 5G phone, 6 GB RAM, 64 GB, 6.1″ LCD, 4500 mAh battery, recycled materials.','EcoTech'),
 	 (10,'EcoPhone E1 Plus','EPE1P-128GB',39900,'Eco 5G phone, 8 GB RAM, 128 GB, 6.4″ screen, 5000 mAh battery.','EcoTech');
-INSERT INTO public.item (id,name,code,price,description,brand) VALUES
+INSERT INTO public.product (id,name,code,price,description,brand) VALUES
 	 (11,'TurboPhone T9','TPT9-256GB',64900,'5G speed phone, 10 GB RAM, 256 GB, 6.5″ AMOLED, 6000 mAh battery, fast charging.','TurboCorp'),
 	 (12,'TurboPhone T9 Lite','TPT9L-128GB',44900,'Lightweight 5G phone, 6 GB RAM, 128 GB, 6.2″ screen, 5000 mAh battery.','TurboCorp'),
 	 (61,'GloboPhone X2','GPX2-256GB',79900,'New-gen 5G, 12 GB RAM, 256 GB, 6.8″ OLED, 5000 mAh battery.','GloboTech'),
@@ -60,7 +64,7 @@ INSERT INTO public.item (id,name,code,price,description,brand) VALUES
 	 (66,'EcoPhone E2','EPE2-128GB',44900,'Eco 5G, 8 GB RAM, 128 GB, 6.5″ screen, 5100 mAh battery, made of sustainable materials.','EcoTech'),
 	 (67,'TurboPhone T10','TPT10-256GB',72900,'Fast 5G, 12 GB RAM, 256 GB, 6.6″ AMOLED, 6200 mAh battery.','TurboCorp'),
 	 (68,'TurboPhone T10 Pro','TPT10P-512GB',99900,'Premium 5G phone, 16 GB RAM, 512 GB, 6.9″ OLED, 6500 mAh battery.','TurboCorp');
-INSERT INTO public.item (id,name,code,price,description,brand) VALUES
+INSERT INTO public.product (id,name,code,price,description,brand) VALUES
 	 (13,'RetroTalk 200','RT200-BTN',9900,'Classic button phone, 512 KB RAM, simple mono display, 1200 mAh battery, physical keypad.','RetroTech'),
 	 (14,'RetroTalk 300','RT300-BTN',11900,'Vintage button phone, small color screen, 1 MB memory, 1400 mAh battery.','RetroTech'),
 	 (15,'BrickPhone 100','BP100-OLD',7500,'Robust “brick” phone, physical keypad, small monochrome screen, 1000 mAh battery.','Oldie'),
@@ -71,7 +75,7 @@ INSERT INTO public.item (id,name,code,price,description,brand) VALUES
 	 (20,'VintageCall V10','VCV10-VTG',8900,'Rugged vintage phone, 512 KB memory, 1.2″ screen, 1200 mAh battery.','VintageCorp'),
 	 (21,'VintageCall V20','VCV20-VTG',14900,'Vintage-style phone, 1.8″ screen, 1 MB storage for contacts, 1300 mAh battery.','VintageCorp'),
 	 (69,'RetroTalk 400','RT400-BTN',12900,'Button phone, color 2″ screen, 2 MB memory, 1400 mAh battery.','RetroTech');
-INSERT INTO public.item (id,name,code,price,description,brand) VALUES
+INSERT INTO public.product (id,name,code,price,description,brand) VALUES
 	 (70,'FlipTalk F3','FTF3-FLP',17900,'Stylish flip phone, 2.8″ screen, external mini display, 1200 mAh battery.','FlipCo'),
 	 (71,'ClassicDial CD3','CD3-PLUS',14900,'Candybar phone, 1.8″ color screen, 1.5 MB memory, 1500 mAh battery.','ClassicTech'),
 	 (22,'KeyPro Standard Keyboard','KPK-S',4500,'Full-size membrane keyboard, no-rgb, durable build.','Logitech'),
@@ -82,7 +86,7 @@ INSERT INTO public.item (id,name,code,price,description,brand) VALUES
 	 (27,'CompactKey 60%','CK60',8900,'Compact 60%-layout, mechanical keyboard, hot-swappable switches.','Keychron'),
 	 (28,'HeavyDuty Industrial Keyboard','HDIK-USB',15900,'Industrial-grade keyboard, spill-resistant, USB connection.','Das Keyboard'),
 	 (29,'SilenceKey Membrane','SKM',4990,'Quiet membrane keyboard ideal for office environments.','Logitech');
-INSERT INTO public.item (id,name,code,price,description,brand) VALUES
+INSERT INTO public.product (id,name,code,price,description,brand) VALUES
 	 (30,'WiredKey Basic USB','WKUSB-B',3800,'Basic wired USB keyboard, plug-and-play, standard layout.','Microsoft'),
 	 (31,'WiredKey Mechanical USB','WKUSB-MX',9900,'Mechanical wired keyboard with MX Black switches, USB connector.','Corsair'),
 	 (32,'WiredKey Retro PS/2','WKPS2-RT',7200,'Classic PS/2 wired keyboard, clicky feel, durable keys.','IBM'),
@@ -93,7 +97,7 @@ INSERT INTO public.item (id,name,code,price,description,brand) VALUES
 	 (37,'WirelessKey Radio Full-size','WKRF',13900,'2.4 GHz wireless full-size keyboard, dongle included.','Logitech'),
 	 (38,'WirelessKey Bluetooth Ergo','WKBT-ERGO',15900,'Wireless ergonomic split keyboard over Bluetooth.','Keychron'),
 	 (39,'WirelessKey Rechargeable','WKBT-RC',14900,'Bluetooth keyboard with built-in rechargeable battery and USB-C charging.','Corsair');
-INSERT INTO public.item (id,name,code,price,description,brand) VALUES
+INSERT INTO public.product (id,name,code,price,description,brand) VALUES
 	 (40,'WirelessKey Slim Radio','WKRF-SLIM',11900,'Slim wireless keyboard using 2.4 GHz dongle.','Logitech'),
 	 (41,'ViewMax 24″ Full HD','VM24-FHD',79900,'24″ IPS monitor, 1080p resolution, 75 Hz refresh, 5 ms response.','HP'),
 	 (42,'ViewMax 27″ 4K','VM27-4K',159900,'27″ monitor, 3840×2160 resolution, IPS panel, 60 Hz.','Dell'),
@@ -104,7 +108,7 @@ INSERT INTO public.item (id,name,code,price,description,brand) VALUES
 	 (47,'ProDesigner 27″ Colour-Accurate','PD27-CA',189900,'27″ monitor with 99% sRGB gamut, color-calibrated, 60 Hz.','Dell'),
 	 (48,'PortableView 15.6″ USB-C','PV15-USB',99900,'15.6″ portable monitor, 1080p, powered over USB-C.','ASUS'),
 	 (79,'ViewMax 21.5″ Full HD','VM21-FHD',69900,'21.5″ IPS 1080p monitor, compact design.','HP');
-INSERT INTO public.item (id,name,code,price,description,brand) VALUES
+INSERT INTO public.product (id,name,code,price,description,brand) VALUES
 	 (80,'ViewMax 30″ 4K','VM30-4K',239900,'30″ monitor, 4K resolution, IPS panel, 60 Hz.','LG'),
 	 (81,'SpeedView Gaming 32″ 144Hz','SVG32-144',209900,'32″ gaming monitor, 144 Hz refresh, 2560×1440.','Acer'),
 	 (82,'EcoMon 24″ Low-Power','EM24-LP',89900,'24″ energy-saving monitor, 1080p, eco-mode power.','LG'),
@@ -115,7 +119,7 @@ INSERT INTO public.item (id,name,code,price,description,brand) VALUES
 	 (51,'Power Bank 20 000mAh','PB20K',14900,'Portable power bank, 20 000 mAh capacity, USB-C output.','Xiaomi'),
 	 (52,'Bluetooth Earbuds X2','BE-X2',79900,'TWS earbuds, Bluetooth 5.2, 6 h playtime + 24 h with charging case.','JBL'),
 	 (53,'Over-Ear Headphones Pro','HP-PRO',99900,'Over-ear headphones, 40 mm drivers, wired and Bluetooth modes.','Sony');
-INSERT INTO public.item (id,name,code,price,description,brand) VALUES
+INSERT INTO public.product (id,name,code,price,description,brand) VALUES
 	 (54,'Gaming Mouse GM1','GM1-USB',49900,'Gaming mouse with 16000 DPI sensor, programmable buttons.','Logitech'),
 	 (55,'Ergo Mouse Bluetooth','EM-BT',35900,'Vertical ergonomic Bluetooth mouse, rechargeable.','Logitech'),
 	 (56,'Mechanical Numeric Keypad','MNK-USB',10900,'Standalone mechanical keypad, USB, Cherry-style switches.','Corsair'),
@@ -126,7 +130,7 @@ INSERT INTO public.item (id,name,code,price,description,brand) VALUES
 	 (85,'Gaming Headset GH-X','GHHX',119900,'Gaming headset, 50 mm drivers, surround-sound simulation.','HyperX'),
 	 (86,'Laptop Backpack 15″','LB15',49900,'15″ laptop backpack, padded compartments and water-resistant fabric.','CaseLogic'),
 	 (87,'External SSD 1 TB USB-C','ESSD1T-USB',159900,'1 TB external SSD, USB-C interface, up to 1050 MB/s.','Samsung');
-INSERT INTO public.item (id,name,code,price,description,brand) VALUES
+INSERT INTO public.product (id,name,code,price,description,brand) VALUES
 	 (88,'HDMI Cable 2 m','HDMIC-2',2990,'High-speed HDMI 2.0 cable, 2 meters long.','CablePro'),
 	 (89,'Surge Protector 4-way','SP4P',39900,'4-socket surge protector, 2 USB-A charging ports.','APC'),
 	 (90,'Desk Microphone USB','DM-USB',89900,'USB studio microphone, cardioid pattern, 16-bit/48 kHz.','Blue'),
@@ -137,7 +141,7 @@ INSERT INTO public.item (id,name,code,price,description,brand) VALUES
 	 (95,'VR Headset V2','VRV2',299900,'Standalone VR headset, 4 K (2×2K) display, 6-axis tracking.','Meta'),
 	 (96,'USB-A to USB-C Cable 1 m','UAC1',1990,'Durable 1 m USB-A to USB-C cable, braided.','Anker'),
 	 (97,'Portable Projector Mini','PPM',249900,'Mini portable projector, 1080p, HDMI / USB-C input.','XGIMI');
-INSERT INTO public.item (id,name,code,price,description,brand) VALUES
+INSERT INTO public.product (id,name,code,price,description,brand) VALUES
 	 (98,'Smart Light Bulb RGB','SLB-RGB',39900,'Wi-Fi smart bulb, RGB color control, mobile app integration.','Philips'),
 	 (99,'Wi-Fi Router AX3000','WR-AX3000',129900,'Dual-band Wi-Fi 6 router, up to 3000 Mbps, 4 antennas.','TP-Link'),
 	 (100,'Bluetooth Speaker S1','BTS1',79900,'Portable Bluetooth speaker, 12-hour battery, 20 W RMS output.','JBL');
@@ -168,15 +172,15 @@ INSERT INTO public."group" (id,"name",description,master_group_id) VALUES
 	 (9,'other','uncathegorized',NULL);
 
 
--- public.items_groups definition
+-- public.products_groups definition
 
-CREATE TABLE public.items_groups (
-	item_id int8 NOT NULL,
+CREATE TABLE public.products_groups (
+	product_id int8 NOT NULL,
 	group_id int8 NULL
 );
-CREATE UNIQUE INDEX items_groups_item_id_idx ON public.items_groups USING btree (item_id, group_id);
+CREATE UNIQUE INDEX products_groups_product_id_idx ON public.products_groups USING btree (product_id, group_id);
 
-INSERT INTO public.items_groups (item_id,group_id) VALUES
+INSERT INTO public.products_groups (product_id,group_id) VALUES
 	 (1,2),
 	 (2,2),
 	 (3,2),
@@ -187,7 +191,7 @@ INSERT INTO public.items_groups (item_id,group_id) VALUES
 	 (8,2),
 	 (9,2),
 	 (10,2);
-INSERT INTO public.items_groups (item_id,group_id) VALUES
+INSERT INTO public.products_groups (product_id,group_id) VALUES
 	 (11,2),
 	 (12,2),
 	 (61,2),
@@ -198,7 +202,7 @@ INSERT INTO public.items_groups (item_id,group_id) VALUES
 	 (66,2),
 	 (67,2),
 	 (68,2);
-INSERT INTO public.items_groups (item_id,group_id) VALUES
+INSERT INTO public.products_groups (product_id,group_id) VALUES
 	 (13,3),
 	 (14,3),
 	 (15,3),
@@ -209,7 +213,7 @@ INSERT INTO public.items_groups (item_id,group_id) VALUES
 	 (20,3),
 	 (21,3),
 	 (69,3);
-INSERT INTO public.items_groups (item_id,group_id) VALUES
+INSERT INTO public.products_groups (product_id,group_id) VALUES
 	 (70,3),
 	 (71,3),
 	 (22,4),
@@ -220,7 +224,7 @@ INSERT INTO public.items_groups (item_id,group_id) VALUES
 	 (27,4),
 	 (28,4),
 	 (29,4);
-INSERT INTO public.items_groups (item_id,group_id) VALUES
+INSERT INTO public.products_groups (product_id,group_id) VALUES
 	 (30,6),
 	 (31,6),
 	 (32,6),
@@ -231,7 +235,7 @@ INSERT INTO public.items_groups (item_id,group_id) VALUES
 	 (37,7),
 	 (38,7),
 	 (39,7);
-INSERT INTO public.items_groups (item_id,group_id) VALUES
+INSERT INTO public.products_groups (product_id,group_id) VALUES
 	 (40,7),
 	 (41,8),
 	 (42,8),
@@ -242,7 +246,7 @@ INSERT INTO public.items_groups (item_id,group_id) VALUES
 	 (47,8),
 	 (48,8),
 	 (79,8);
-INSERT INTO public.items_groups (item_id,group_id) VALUES
+INSERT INTO public.products_groups (product_id,group_id) VALUES
 	 (80,8),
 	 (81,8),
 	 (82,8),
@@ -253,7 +257,7 @@ INSERT INTO public.items_groups (item_id,group_id) VALUES
 	 (51,9),
 	 (52,9),
 	 (53,9);
-INSERT INTO public.items_groups (item_id,group_id) VALUES
+INSERT INTO public.products_groups (product_id,group_id) VALUES
 	 (54,9),
 	 (55,9),
 	 (56,9),
@@ -264,7 +268,7 @@ INSERT INTO public.items_groups (item_id,group_id) VALUES
 	 (85,9),
 	 (86,9),
 	 (87,9);
-INSERT INTO public.items_groups (item_id,group_id) VALUES
+INSERT INTO public.products_groups (product_id,group_id) VALUES
 	 (88,9),
 	 (89,9),
 	 (90,9),
@@ -275,14 +279,14 @@ INSERT INTO public.items_groups (item_id,group_id) VALUES
 	 (95,9),
 	 (96,9),
 	 (97,9);
-INSERT INTO public.items_groups (item_id,group_id) VALUES
+INSERT INTO public.products_groups (product_id,group_id) VALUES
 	 (98,9),
 	 (99,9),
 	 (100,9);
 
--- public.items_groups foreign keys
+-- public.products_groups foreign keys
 
-ALTER TABLE public.items_groups ADD CONSTRAINT items_groups_group_fk FOREIGN KEY (group_id) REFERENCES public."group"(id);
-ALTER TABLE public.items_groups ADD CONSTRAINT items_groups_item_fk FOREIGN KEY (item_id) REFERENCES public.item(id);
+ALTER TABLE public.products_groups ADD CONSTRAINT products_groups_group_fk FOREIGN KEY (group_id) REFERENCES public."group"(id);
+ALTER TABLE public.products_groups ADD CONSTRAINT products_groups_product_fk FOREIGN KEY (product_id) REFERENCES public.product(id);
 
 `;

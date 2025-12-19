@@ -17,9 +17,13 @@ export const envValidationConfig = Joi.object({
 
   DB_HOST: Joi.string().required(),
   DB_PORT: Joi.number().required(),
+
   DB_DATABASE: Joi.string().required(),
   DB_USERNAME: Joi.string().required(),
   DB_PASSWORD: Joi.string().required(),
+
+  VECTOR_DB_HOST: Joi.string().required(),
+  VECTOR_DB_PORT: Joi.number().required(),
 
   TYPEORM_LOGGING: Joi.string().valid('true', 'false').default('false'),
 
@@ -28,7 +32,4 @@ export const envValidationConfig = Joi.object({
 
   JWT_SECRET_KEY: Joi.string().min(5).max(100).required(),
   BCRYPT_SALT_ROUNDS: Joi.number().required(),
-
-  OPENAI_API_KEY: Joi.string().required(),
-  OPENAI_PROJECT_ID: Joi.string().required(),
 });

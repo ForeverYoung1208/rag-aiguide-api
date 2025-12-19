@@ -1,4 +1,4 @@
-import { databaseConfig, goodsDatabaseConfig } from './db/database.config';
+import { databaseConfig } from './db/database.config';
 
 import { envValidationConfig } from './env-validation.config';
 import { ENV_TEST } from '../constants/system';
@@ -9,7 +9,6 @@ export const envFilePath = (): string =>
 
 export default () => ({
   databaseConfig,
-  goodsDatabaseConfig,
   envValidationConfig,
   throttlerConfig,
 });

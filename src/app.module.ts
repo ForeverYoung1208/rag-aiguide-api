@@ -7,7 +7,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './modules/users/users.module';
 import { ExceptionFiltersModule } from './exception-filters/exception-filters.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { GoodsModule } from './modules/goods-knowledge/goods-knowledge.module';
 import { AiAgentModule } from './modules/ai-agent/ai-agent.module';
 import { CartsModule } from './modules/carts/carts.module';
 
@@ -28,7 +27,6 @@ import { CartsModule } from './modules/carts/carts.module';
     UsersModule,
     ExceptionFiltersModule,
     AuthModule,
-    GoodsModule,
     AiAgentModule,
     CartsModule,
   ],

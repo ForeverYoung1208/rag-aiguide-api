@@ -1,10 +1,8 @@
 import { createOpenAI } from '@ai-sdk/openai';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { generateText, ModelMessage, stepCountIs, streamText, tool } from 'ai';
-import { IKnowledgeBase } from '../interfaces-needed/knowledge-base.interface';
 import {
   EEventTypes,
-  KNOWLEDGE_BASE_SERVICE_TOKEN,
   MAX_AI_STEP_COUNT,
   SUMMARIZE_MODEL_MAX_OUTPUT_TOKENS,
 } from '../constants';
@@ -25,8 +23,6 @@ export class AiAgentService {
     new Subject<MyMessageEventDto>();
 
   constructor(
-    @Inject(KNOWLEDGE_BASE_SERVICE_TOKEN)
-    private readonly knowledgeBase: IKnowledgeBase,
     private readonly dialogsService: DialogsService,
     private readonly cartService: CartsService,
   ) {
@@ -69,10 +65,6 @@ export class AiAgentService {
         const messages: ModelMessage[] = [
           {
             role: 'system',
-            content: await this.knowledgeBase.getCommonInstructions(),
-          },
-          {
-            role: 'system',
             content:
               "use tool addItemToCart(code) to add items to cart. Use product's code as parameter for addItemToCart(code)",
           },
@@ -95,26 +87,6 @@ export class AiAgentService {
             });
           },
           tools: {
-            getDatabaseInstructions: tool({
-              description:
-                'Get database structure and instructions how to work with it',
-              inputSchema: z.object({}),
-              execute: async (): Promise<string> => {
-                return await this.knowledgeBase.getDatabaseInstructions();
-              },
-            }),
-
-            executeRequest: tool({
-              description:
-                'Execute request against goods knowledge database, see database instructions for details',
-              inputSchema: z.object({
-                request: z.string(),
-              }),
-              execute: async (params: { request: string }): Promise<string> => {
-                return await this.knowledgeBase.executeRequest(params.request);
-              },
-            }),
-
             addItemToCart: tool({
               description:
                 'Add item to cart using product code, result is updated cart JSON',

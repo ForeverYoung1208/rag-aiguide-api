@@ -20,7 +20,6 @@ services:
       && npm run start:debug"
 
   db:
-    restart: unless-stopped
     build:
       dockerfile: docker/postgres/Dockerfile
     environment:
@@ -32,6 +31,17 @@ services:
     volumes:
       - ./docker/postgres/data:/var/lib/postgresql/data
       - ./docker/postgres/init-scripts:/docker-entrypoint-initdb.d
+  
+  vector_db:
+    image: qdrant/qdrant
+    ports:
+      - ${VECTOR_DB_PORT}:6333
+    volumes:
+      - ./docker/qdrant/data:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__RELOAD_CONFIG=true #only for development 
+      - QDRANT__SERVICE__RELOAD_CONFIG_INTERVAL=1 #only for development 
+    
 
   db_tests:
     build:
