@@ -1,5 +1,5 @@
 import { createOpenAI } from '@ai-sdk/openai';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { generateText, ModelMessage, stepCountIs, streamText, tool } from 'ai';
 import {
   EEventTypes,

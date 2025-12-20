@@ -9,6 +9,7 @@ import { ExceptionFiltersModule } from './exception-filters/exception-filters.mo
 import { AuthModule } from './modules/auth/auth.module';
 import { AiAgentModule } from './modules/ai-agent/ai-agent.module';
 import { CartsModule } from './modules/carts/carts.module';
+import { VectorDbModule } from './modules/vector-db/vector-db.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { CartsModule } from './modules/carts/carts.module';
       useFactory: (configService: ConfigService) =>
         configService.get('databaseConfig')(),
     }),
+    VectorDbModule,
     UsersModule,
     ExceptionFiltersModule,
     AuthModule,

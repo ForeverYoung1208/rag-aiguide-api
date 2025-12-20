@@ -57,7 +57,6 @@ services:
       - ./docker/postgres/init-scripts:/docker-entrypoint-initdb.d
 
   redis:
-    restart: unless-stopped
     image: redis:alpine
     ports:
       - ${REDIS_PORT}:6379

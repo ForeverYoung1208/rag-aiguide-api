@@ -24,6 +24,11 @@ export const envValidationConfig = Joi.object({
 
   VECTOR_DB_HOST: Joi.string().required(),
   VECTOR_DB_PORT: Joi.number().required(),
+  PRODUCTS_COLLECTION_NAME: Joi.string().required(),
+
+  EMBEDDING_MODEL: Joi.string().required(),
+  CHAT_MODEL: Joi.string().required(),
+  OLLAMA_BASE_URL: Joi.string().required(),
 
   TYPEORM_LOGGING: Joi.string().valid('true', 'false').default('false'),
 
