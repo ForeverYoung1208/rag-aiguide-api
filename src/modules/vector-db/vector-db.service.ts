@@ -11,29 +11,38 @@ import { IVectorDbConfig } from '../../config/vector-db.config';
 @Injectable()
 export class VectorDbService {
   private readonly logger: Logger = new Logger(VectorDbService.name);
-  constructor(private readonly configService: ConfigService) {}
+  public readonly embeddingsInterface: OllamaEmbeddings;
 
-  async getVectorStore(collectionName: string): Promise<QdrantVectorStore> {
-    const embeddingsInterface = this.createEmbeddingsInterface();
-    const vectorStore = await QdrantVectorStore.fromExistingCollection(
-      embeddingsInterface,
-      {
-        url: this.configService.get('vectorDbHost'),
-        collectionName: collectionName,
-      },
-    );
-    return vectorStore;
+  private readonly vectorDbConfig: IVectorDbConfig;
+  private readonly llmConfig: ILLMConfig;
+
+  constructor(private readonly configService: ConfigService) {
+    this.vectorDbConfig =
+      this.configService.get<() => IVectorDbConfig>('vectorDbConfig')!();
+    this.llmConfig = this.configService.get<() => ILLMConfig>('llmConfig')!();
+    this.embeddingsInterface = this.createEmbeddingsInterface();
   }
 
   createEmbeddingsInterface(): OllamaEmbeddings {
     const embeddingsInterface = new OllamaEmbeddings({
-      model: this.configService.get<ILLMConfig>('llmConfig')?.embeddingModel,
-      baseUrl: this.configService.get<ILLMConfig>('llmConfig')?.ollamaBaseUrl,
+      model: this.llmConfig.embeddingModel,
+      baseUrl: this.llmConfig.ollamaBaseUrl,
     });
     if (!embeddingsInterface.model || !embeddingsInterface.baseUrl) {
       throw new DataException('Embeddings model or baseUrl not found');
     }
     return embeddingsInterface;
+  }
+
+  async getVectorStore(collectionName: string): Promise<QdrantVectorStore> {
+    const vectorStore = await QdrantVectorStore.fromExistingCollection(
+      this.embeddingsInterface,
+      {
+        url: `${this.vectorDbConfig.vectorDbHost}:${this.vectorDbConfig.vectorDbPort}`,
+        collectionName: collectionName,
+      },
+    );
+    return vectorStore;
   }
 
   async ingestData({
@@ -43,18 +52,26 @@ export class VectorDbService {
     collectionName: string;
     documents: Document[];
   }): Promise<QdrantVectorStore> {
-    const embeddingsInterface = this.createEmbeddingsInterface();
-    const config =
-      this.configService.get<() => IVectorDbConfig>('vectorDbConfig')!();
+    const existingCollection = await this.getVectorStore(collectionName);
+    const existingCollectionInfo =
+      await existingCollection.client.getCollection(collectionName);
+    this.logger.log(
+      `Existing collection ${collectionName} has ${existingCollectionInfo.points_count} points`,
+    );
 
-    return await QdrantVectorStore.fromDocuments(
+    const newStore = await QdrantVectorStore.fromDocuments(
       documents,
-      embeddingsInterface,
+      this.embeddingsInterface,
       {
         collectionName,
-        url: `${config.vectorDbHost}:${config.vectorDbPort}`,
+        url: `${this.vectorDbConfig.vectorDbHost}:${this.vectorDbConfig.vectorDbPort}`,
       },
     );
+    const collectionInfo = await newStore.client.getCollection(collectionName);
+    this.logger.log(
+      `After ingestion, collection ${collectionName} has ${collectionInfo.points_count} points`,
+    );
+    return newStore;
   }
 
   transformProductsToDocuments(products: Product[]): Document[] {
@@ -62,9 +79,10 @@ export class VectorDbService {
     products.forEach((product) => {
       documents.push(
         new Document({
+          id: product.id + 10000,
           pageContent: `Name: ${product.name}. Description: ${product.description}. Brand: ${product.brand}. Price: ${product.price}`,
           metadata: {
-            id: product.id,
+            product_id: product.id,
             name: product.name,
             brand: product.brand,
             price: product.price,
