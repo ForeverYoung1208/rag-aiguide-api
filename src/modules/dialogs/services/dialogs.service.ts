@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { v4 } from 'uuid';
 import { DialogIdentifiersDto } from '../dto/dialog-identifiers.dto';
 import { DataProcessingException } from '../../../exceptions/data-exceptions';
+import { IdStringDto } from '../../../dto/id-string.dto';
 
 @Injectable()
 export class DialogsService {
@@ -68,6 +69,24 @@ export class DialogsService {
 
   async getDialogById(id: string): Promise<Dialog> {
     return this.dialogRepository.findOneByOrFail({ id });
+  }
+
+  async getLastDialogForUserId(userId: string): Promise<Dialog | null> {
+    return this.dialogRepository.findOne({
+      where: { userId },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async addUserPhrase(
+    userId: string,
+    phrase: string,
+    continueDialogId?: string,
+  ): Promise<IdStringDto> {
+    if (continueDialogId) {
+      return await this.continueDialog(continueDialogId, phrase);
+    }
+    return await this.createDialog(userId, phrase);
   }
 
   async updateDialog(

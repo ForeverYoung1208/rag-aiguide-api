@@ -7,9 +7,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './modules/users/users.module';
 import { ExceptionFiltersModule } from './exception-filters/exception-filters.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { AiAgentModule } from './modules/ai-agent/ai-agent.module';
 import { CartsModule } from './modules/carts/carts.module';
 import { VectorDbModule } from './modules/vector-db/vector-db.module';
+import { DialogsModule } from './modules/dialogs/dialogs.module';
+import { AiLangchainModule } from './modules/ai-langchain/ai-langchain.module';
 
 @Module({
   imports: [
@@ -29,8 +30,9 @@ import { VectorDbModule } from './modules/vector-db/vector-db.module';
     UsersModule,
     ExceptionFiltersModule,
     AuthModule,
-    AiAgentModule,
     CartsModule,
+    DialogsModule,
+    AiLangchainModule,
   ],
   controllers: [AppController],
   providers: [AppService],

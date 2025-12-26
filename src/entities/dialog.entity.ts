@@ -9,8 +9,13 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from './user.entity';
-import { ModelMessage } from 'ai';
 import { CartsProducts } from './carts-products.entity';
+import {
+  HumanMessage,
+  AIMessage,
+  SystemMessage,
+  ToolMessage,
+} from '@langchain/core/messages';
 
 @Entity('dialog')
 export class Dialog {
@@ -28,7 +33,7 @@ export class Dialog {
   phrase!: string;
 
   @Column({ name: 'messages', type: 'jsonb', nullable: true })
-  messages?: ModelMessage[];
+  messages?: (HumanMessage | AIMessage | SystemMessage | ToolMessage)[];
 
   @Column({ name: 'sse_token', type: 'uuid', nullable: true })
   sseToken?: string | null;

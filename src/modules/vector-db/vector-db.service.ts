@@ -10,9 +10,9 @@ import { IVectorDbConfig } from '../../config/vector-db.config';
 
 @Injectable()
 export class VectorDbService {
-  private readonly logger: Logger = new Logger(VectorDbService.name);
   public readonly embeddingsInterface: OllamaEmbeddings;
 
+  private readonly logger: Logger = new Logger(VectorDbService.name);
   private readonly vectorDbConfig: IVectorDbConfig;
   private readonly llmConfig: ILLMConfig;
 
@@ -51,27 +51,23 @@ export class VectorDbService {
   }: {
     collectionName: string;
     documents: Document[];
-  }): Promise<QdrantVectorStore> {
-    const existingCollection = await this.getVectorStore(collectionName);
+  }): Promise<string[]> {
+    const res: string[] = [];
+    const vectorStore = await this.getVectorStore(collectionName);
     const existingCollectionInfo =
-      await existingCollection.client.getCollection(collectionName);
-    this.logger.log(
+      await vectorStore.client.getCollection(collectionName);
+    res.push(
       `Existing collection ${collectionName} has ${existingCollectionInfo.points_count} points`,
     );
 
-    const newStore = await QdrantVectorStore.fromDocuments(
-      documents,
-      this.embeddingsInterface,
-      {
-        collectionName,
-        url: `${this.vectorDbConfig.vectorDbHost}:${this.vectorDbConfig.vectorDbPort}`,
-      },
-    );
-    const collectionInfo = await newStore.client.getCollection(collectionName);
-    this.logger.log(
+    await vectorStore.addDocuments(documents);
+
+    const collectionInfo =
+      await vectorStore.client.getCollection(collectionName);
+    res.push(
       `After ingestion, collection ${collectionName} has ${collectionInfo.points_count} points`,
     );
-    return newStore;
+    return res;
   }
 
   transformProductsToDocuments(products: Product[]): Document[] {
@@ -91,5 +87,17 @@ export class VectorDbService {
       );
     });
     return documents;
+  }
+
+  async searchInVectorStore({
+    collectionName,
+    query,
+  }: {
+    collectionName: string;
+    query: string;
+  }): Promise<Document[]> {
+    const vectorStore = await this.getVectorStore(collectionName);
+    const results = await vectorStore.similaritySearch(query, 5);
+    return results;
   }
 }
