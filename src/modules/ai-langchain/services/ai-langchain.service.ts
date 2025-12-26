@@ -17,6 +17,8 @@ import {
 } from '../../../constants/system';
 import { IAiService } from '../../../interfaces/ai-agent-service.interface';
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
+import { createAgent } from 'langchain';
+import { ToolsService } from './tools.service';
 
 @Injectable()
 export class AiLangchainService implements IAiService {
@@ -31,6 +33,7 @@ export class AiLangchainService implements IAiService {
   constructor(
     private readonly dialogsService: DialogsService,
     private readonly configService: ConfigService,
+    private readonly toolsService: ToolsService,
   ) {
     this.llmConfig = this.configService.get<() => ILLMConfig>('llmConfig')!();
     this.chatModel = new ChatOllama({
@@ -57,17 +60,24 @@ export class AiLangchainService implements IAiService {
         dialog.messages = [...storedMessages, newMessage];
         await this.dialogsService.updateDialog(dialog);
 
-        const resultStream = await this.chatModel.stream([
-          ...storedMessages,
-          newMessage,
-        ]);
+        const agent = createAgent({
+          model: this.chatModel,
+          tools: [this.toolsService.getVectorSearchTool()],
+        });
+
+        const resultStream = await agent.stream(
+          { messages: [...storedMessages, newMessage] },
+          { streamMode: 'messages' },
+        );
 
         let fullResponse = '';
         for await (const chunk of resultStream) {
-          fullResponse += chunk.text;
+          const [token] = chunk;
+          const data = String(token.content);
+          fullResponse += data;
+
           const event: ChunkEventDto = {
-            data: chunk.text,
-            dialogId,
+            data,
           };
           // emit next chunk to SSE
           subscriber.next(event);
