@@ -36,7 +36,7 @@ export enum ErrorCodes {
 export const USER_PHRASE_MAX_LENGTH = 2048;
 
 export const SUMMARIZE_MODEL_MAX_OUTPUT_TOKENS = 1000;
-export const MAX_DIALOG_LENGTH = 20;
+export const MAX_DIALOG_LENGTH = 10;
 export const LEAVE_ORIGINAL_MESSAGES = 5;
 
 export enum EEventCustomTypes {

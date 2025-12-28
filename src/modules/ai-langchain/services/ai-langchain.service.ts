@@ -17,8 +17,9 @@ import {
 } from '../../../constants/system';
 import { IAiService } from '../../../interfaces/ai-agent-service.interface';
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
-import { createAgent } from 'langchain';
+import { createAgent, summarizationMiddleware } from 'langchain';
 import { ToolsService } from './tools.service';
+import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 
 @Injectable()
 export class AiLangchainService implements IAiService {
@@ -43,38 +44,61 @@ export class AiLangchainService implements IAiService {
       numPredict: 500,
     });
     this.summarizeModel = new ChatOllama({
-      model: this.llmConfig.chatModel,
+      model: this.llmConfig.summarizeModel,
       baseUrl: this.llmConfig.ollamaBaseUrl,
       temperature: this.llmConfig.temperature,
       numPredict: SUMMARIZE_MODEL_MAX_OUTPUT_TOKENS,
     });
   }
 
+  async initCheckpointer() {
+    const checkpointer = PostgresSaver.fromConnString(
+      this.llmConfig.dbMemoryUri,
+    );
+    await checkpointer.setup(); // Always safe, handles schema evolution
+    return checkpointer;
+  }
+
   sendDialogToAiStreamed(dialogId: string): Observable<ChunkEventDto> {
     return new Observable<ChunkEventDto>((subscriber) => {
       void (async () => {
         const dialog = await this.dialogsService.getDialogById(dialogId);
-        const storedMessages = dialog.messages || [];
-        const newMessage = new HumanMessage(dialog.phrase);
-        dialog.phrase = '';
-        dialog.messages = [...storedMessages, newMessage];
-        await this.dialogsService.updateDialog(dialog);
+        const phrase = dialog.phrase;
+        const newMessage = new HumanMessage(phrase);
+        const checkpointer = await this.initCheckpointer();
 
+        // TODO: investigate state middleware, investigate delete message ability https://docs.langchain.com/oss/javascript/langchain/short-term-memory
         const agent = createAgent({
           model: this.chatModel,
           tools: [this.toolsService.getVectorSearchTool()],
+          middleware: [
+            summarizationMiddleware({
+              model: this.summarizeModel,
+              keep: {
+                messages: this.llmConfig.keepMessages,
+              },
+              trigger: {
+                messages: this.llmConfig.triggerSummarize,
+              },
+            }),
+          ],
+          checkpointer,
         });
 
         const resultStream = await agent.stream(
-          { messages: [...storedMessages, newMessage] },
-          { streamMode: 'messages' },
+          { messages: [newMessage] },
+          {
+            streamMode: 'messages',
+            configurable: { thread_id: dialogId },
+          },
         );
 
-        let fullResponse = '';
         for await (const chunk of resultStream) {
           const [token] = chunk;
-          const data = String(token.content);
-          fullResponse += data;
+          const data =
+            token.content instanceof String
+              ? String(token.content)
+              : JSON.stringify(token.content);
 
           const event: ChunkEventDto = {
             data,
@@ -85,16 +109,12 @@ export class AiLangchainService implements IAiService {
           this.streamEvents$.next(event);
         }
 
-        // emit finish to internal subject
-        const finalEvent: ChunkEventDto = {
-          type: EEventCustomTypes.COMPLETE,
-          data: fullResponse,
-          dialogId,
-        };
-        this.streamEvents$.next(finalEvent);
-
         // emit finish to SSE to close stream
-        subscriber.next({ ...finalEvent, data: '' });
+        subscriber.next({
+          type: EEventCustomTypes.COMPLETE,
+          data: '',
+          dialogId,
+        });
         subscriber.complete();
       })();
     });

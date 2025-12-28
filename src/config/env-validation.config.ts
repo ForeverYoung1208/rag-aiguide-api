@@ -27,6 +27,7 @@ export const envValidationConfig = Joi.object({
   PRODUCTS_COLLECTION_NAME: Joi.string().required(),
 
   EMBEDDING_MODEL: Joi.string().required(),
+  SUMMARIZE_MODEL: Joi.string().required(),
   CHAT_MODEL: Joi.string().required(),
   OLLAMA_BASE_URL: Joi.string().required(),
 
