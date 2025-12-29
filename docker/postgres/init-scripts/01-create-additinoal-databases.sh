@@ -1,14 +1,14 @@
 #!/bin/bash
 set -e
 
-for dbname in ${POSTGRES_MULTIPLE_DATABASES//,/ }; do
+for dbname in ${POSTGRES_ADDITIONAL_DATABASES//,/ }; do
   psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
     CREATE DATABASE $dbname;
     GRANT ALL PRIVILEGES ON DATABASE "$dbname" TO "$POSTGRES_USER";
 EOSQL
 done
 
-for dbname in ${POSTGRES_MULTIPLE_DATABASES//,/ }; do
+for dbname in ${POSTGRES_ADDITIONAL_DATABASES//,/ }; do
   psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
     DO \$\$
     BEGIN
