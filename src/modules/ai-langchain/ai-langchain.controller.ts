@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Sse } from '@nestjs/common';
+import { Controller, Get, Param, Sse } from '@nestjs/common';
 import { AiLangchainService } from './services/ai-langchain.service';
 import { Observable } from 'rxjs';
 import { ChunkEventDto } from '../../dto/chunk-event.dto';

@@ -33,7 +33,17 @@ curl -X POST http://localhost:3000/api/dialogs/user-phrase \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer {{accessToken}}" \
   -d '{
-    "phrase": "What did I tell you about the cup?",
+    "phrase": "Information to remember: The cup is turquoise.",
+    "continueDialogId": "{{dialogId}}"
+  }'
+
+### send another message to the same dialog
+
+curl -X POST http://localhost:3000/api/dialogs/user-phrase \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer {{accessToken}}" \
+  -d '{
+    "phrase": "What is the color of the cup?",
     "continueDialogId": "{{dialogId}}"
   }'
 

@@ -27,14 +27,18 @@ export class MiddlewaresService {
         const summary = await summarizeStrings(
           messagesToSummarize.map((msg) => {
             if (typeof msg.content !== 'string') {
-              return JSON.stringify(msg.content);
+              return `${msg.type}: ${JSON.stringify(msg.content)}`;
             }
-            return msg.content;
+            return `${msg.type}: ${msg.content}`;
           }),
         );
+        const finalMessages = [new SystemMessage(summary), ...messagesToKeep];
+
+        // Mutate the state.messages array to update the memory
+        state.messages.splice(0, state.messages.length, ...finalMessages);
 
         return {
-          messages: [new SystemMessage(summary), ...messagesToKeep],
+          messages: state.messages,
         };
       },
     });

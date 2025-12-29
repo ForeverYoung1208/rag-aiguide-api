@@ -3,7 +3,7 @@ import { ChatOllama } from '@langchain/ollama';
 import { DialogsService } from '../../dialogs/services/dialogs.service';
 import { ConfigService } from '@nestjs/config';
 import { ILLMConfig } from '../../../config/llm.config';
-import { HumanMessage, SystemMessage } from '@langchain/core/messages';
+import { HumanMessage } from '@langchain/core/messages';
 import { Observable, Subject } from 'rxjs';
 import { ChunkEventDto } from '../../../dto/chunk-event.dto';
 import {
@@ -90,6 +90,9 @@ export class AiLangchainService implements IAiService {
 
         for await (const chunk of resultStream) {
           const [token] = chunk;
+          if (token.type !== 'ai') {
+            continue;
+          }
           const data =
             token.content instanceof String
               ? String(token.content)
@@ -116,14 +119,16 @@ export class AiLangchainService implements IAiService {
   }
 
   async askAiAgentSummary(messages: string[]): Promise<string> {
-    const result = await this.summarizeModel.invoke([
-      new SystemMessage(
+    const result = await this.summarizeModel.invoke(
+      [
         'You are a messages summarizer. Here are the messages to summarize: ',
-      ),
-      new SystemMessage('End of messages. Summarize these messages.'),
-      ...messages,
-    ]);
-
+        ...messages,
+        'End of messages. Summarize these messages.',
+      ],
+      {
+        callbacks: [], // Prevent this model from streaming to the parent callbacks
+      },
+    );
     return typeof result.content === 'string'
       ? result.content
       : JSON.stringify(result.content);
