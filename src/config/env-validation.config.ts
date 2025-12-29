@@ -30,6 +30,11 @@ export const envValidationConfig = Joi.object({
   SUMMARIZE_MODEL: Joi.string().required(),
   CHAT_MODEL: Joi.string().required(),
   OLLAMA_BASE_URL: Joi.string().required(),
+  LANGCHAIN_MEMORY_SCHEMA: Joi.string().required(),
+
+  LANGSMITH_TRACING: Joi.string().valid('true', 'false').default('false'),
+  LANGSMITH_API_KEY: Joi.string().optional(),
+  LANGSMITH_WORKSPACE_ID: Joi.string().optional(),
 
   TYPEORM_LOGGING: Joi.string().valid('true', 'false').default('false'),
 

@@ -1,0 +1,43 @@
+### Test api
+
+### User login
+# @name login
+curl -X POST http://localhost:3000/api/auth/signin \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@test.com",
+    "password": "asdfasdf"
+  }'
+
+@accessToken = {{login.response.body.accessToken}}
+@refreshToken = {{login.response.body.refreshToken}}
+
+### send user's message (start new dialog)
+# @name firstMessage
+
+curl -X POST http://localhost:3000/api/dialogs/user-phrase \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer {{accessToken}}"
+  -d '{
+    "phrase": "Hello, this is a test for a new chat. Information to remember: The cup is black."
+  }'
+
+@dialogId = {{firstMessage.response.body.id}}
+@sseToken = {{firstMessage.response.body.sseToken}}
+
+
+
+### send another message to the same dialog
+
+curl -X POST http://localhost:3000/api/dialogs/user-phrase \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer {{accessToken}}" \
+  -d '{
+    "phrase": "What did I tell you about the cup?",
+    "continueDialogId": "{{dialogId}}"
+  }'
+
+
+### Start LLM processing and listen to SSE
+GET http://localhost:3000/api/ai-langchain/start/{{dialogId}}
+Accept: text/event-stream

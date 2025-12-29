@@ -3,12 +3,7 @@ import { ChatOllama } from '@langchain/ollama';
 import { DialogsService } from '../../dialogs/services/dialogs.service';
 import { ConfigService } from '@nestjs/config';
 import { ILLMConfig } from '../../../config/llm.config';
-import {
-  HumanMessage,
-  SystemMessage,
-  BaseMessage,
-  AIMessage,
-} from '@langchain/core/messages';
+import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { Observable, Subject } from 'rxjs';
 import { ChunkEventDto } from '../../../dto/chunk-event.dto';
 import {
@@ -17,8 +12,9 @@ import {
 } from '../../../constants/system';
 import { IAiService } from '../../../interfaces/ai-agent-service.interface';
 import { BaseChatModel } from '@langchain/core/language_models/chat_models';
-import { createAgent, summarizationMiddleware } from 'langchain';
+import { createAgent } from 'langchain';
 import { ToolsService } from './tools.service';
+import { MiddlewaresService } from './middlewares.service';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 
 @Injectable()
@@ -35,6 +31,7 @@ export class AiLangchainService implements IAiService {
     private readonly dialogsService: DialogsService,
     private readonly configService: ConfigService,
     private readonly toolsService: ToolsService,
+    private readonly middlewaresService: MiddlewaresService,
   ) {
     this.llmConfig = this.configService.get<() => ILLMConfig>('llmConfig')!();
     this.chatModel = new ChatOllama({
@@ -54,8 +51,11 @@ export class AiLangchainService implements IAiService {
   async initCheckpointer() {
     const checkpointer = PostgresSaver.fromConnString(
       this.llmConfig.dbMemoryUri,
+      {
+        schema: this.llmConfig.dbMemorySchema,
+      },
     );
-    await checkpointer.setup(); // Always safe, handles schema evolution
+    await checkpointer.setup();
     return checkpointer;
   }
 
@@ -67,20 +67,15 @@ export class AiLangchainService implements IAiService {
         const newMessage = new HumanMessage(phrase);
         const checkpointer = await this.initCheckpointer();
 
-        // TODO: investigate state middleware, investigate delete message ability https://docs.langchain.com/oss/javascript/langchain/short-term-memory
+        // TODO: investigate delete message ability https://docs.langchain.com/oss/javascript/langchain/short-term-memory
         const agent = createAgent({
           model: this.chatModel,
           tools: [this.toolsService.getVectorSearchTool()],
           middleware: [
-            summarizationMiddleware({
-              model: this.summarizeModel,
-              keep: {
-                messages: this.llmConfig.keepMessages,
-              },
-              trigger: {
-                messages: this.llmConfig.triggerSummarize,
-              },
-            }),
+            // use custom summarization middleware because the default one uses HumanMessage and we need SystemMessage for summary message.
+            this.middlewaresService.getCustomSummarizationMiddleware(
+              this.askAiAgentSummary.bind(this),
+            ),
           ],
           checkpointer,
         });
@@ -120,19 +115,18 @@ export class AiLangchainService implements IAiService {
     });
   }
 
-  async askAiAgentSummary<T>(messages: T[]): Promise<T> {
-    // Runtime check: verify all messages are BaseMessage instances
-    if (messages.some((message) => !(message instanceof BaseMessage))) {
-      throw new Error('Invalid messages format');
-    }
-
-    // Type assertion is safe here because we validated at runtime
+  async askAiAgentSummary(messages: string[]): Promise<string> {
     const result = await this.summarizeModel.invoke([
-      ...(messages as BaseMessage[]),
-      new SystemMessage('summarize this conversation'),
+      new SystemMessage(
+        'You are a messages summarizer. Here are the messages to summarize: ',
+      ),
+      new SystemMessage('End of messages. Summarize these messages.'),
+      ...messages,
     ]);
 
-    return new AIMessage(result.text) as T;
+    return typeof result.content === 'string'
+      ? result.content
+      : JSON.stringify(result.content);
   }
 
   get aiStreamEvents$(): Observable<ChunkEventDto> {

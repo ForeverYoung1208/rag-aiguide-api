@@ -13,6 +13,7 @@ export interface ILLMConfig {
   keepMessages: number;
   triggerSummarize: number;
   dbMemoryUri: string;
+  dbMemorySchema: string;
 }
 
 export const llmConfig = registerAs<ILLMConfig>('llmConfig', () => ({
@@ -24,4 +25,5 @@ export const llmConfig = registerAs<ILLMConfig>('llmConfig', () => ({
   keepMessages: LEAVE_ORIGINAL_MESSAGES,
   triggerSummarize: MAX_DIALOG_LENGTH,
   dbMemoryUri: `postgresql://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_DATABASE}?sslmode=disable`,
+  dbMemorySchema: process.env.LANGCHAIN_MEMORY_SCHEMA!,
 }));

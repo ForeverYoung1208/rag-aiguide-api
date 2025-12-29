@@ -1,4 +1,4 @@
-import { Controller, Param, Post, Sse } from '@nestjs/common';
+import { Controller, Get, Param, Post, Sse } from '@nestjs/common';
 import { AiLangchainService } from './services/ai-langchain.service';
 import { Observable } from 'rxjs';
 import { ChunkEventDto } from '../../dto/chunk-event.dto';
@@ -13,7 +13,7 @@ import {
 export class AiLangchainController {
   constructor(private readonly aiService: AiLangchainService) {}
 
-  @Post('start/:dialogId')
+  @Get('start/:dialogId')
   @Sse('send-dialog-to-ai')
   @ApiOperation({
     summary: 'Send dialog to AI',
